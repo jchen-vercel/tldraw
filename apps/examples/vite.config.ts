@@ -1,6 +1,43 @@
+import { execFileSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import path from 'path'
 import react from '@vitejs/plugin-react'
 import { Plugin, PluginOption, defineConfig } from 'vite'
+
+const REPO_ROOT = path.join(__dirname, '../..')
+
+/**
+ * Examples use `getAssetUrlsByMetaUrl()` from `@tldraw/assets/urls`, which points at files under
+ * `packages/assets/`. Those icons/fonts are not committed; `yarn refresh-assets` (postinstall)
+ * copies them from `assets/`. If postinstall never ran, toolbar icons vanish (broken mask URLs).
+ *
+ * `packages/tldraw/tldraw.css` is also generated (gitignored) by `packages/tldraw/scripts/copy-css-files.mjs`.
+ */
+function ensureExamplesDevArtifactsPlugin(): Plugin {
+	return {
+		name: 'ensure-examples-dev-artifacts',
+		buildStart() {
+			const mergedIconPath = path.join(
+				REPO_ROOT,
+				'packages/assets/icons/icon/0_merged.svg'
+			)
+			if (!existsSync(mergedIconPath)) {
+				const tsxCli = path.join(REPO_ROOT, 'node_modules/tsx/dist/cli.mjs')
+				const refreshAssets = path.join(REPO_ROOT, 'internal/scripts/refresh-assets.ts')
+				execFileSync(process.execPath, [tsxCli, refreshAssets], {
+					stdio: 'inherit',
+					cwd: REPO_ROOT,
+				})
+			}
+
+			const copyCssPath = path.join(
+				REPO_ROOT,
+				'packages/tldraw/scripts/copy-css-files.mjs'
+			)
+			execFileSync(process.execPath, [copyCssPath], { stdio: 'inherit' })
+		},
+	}
+}
 
 /**
  * Plugin to enable SPA fallback for vite preview.
@@ -73,7 +110,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin()],
+	plugins: [ensureExamplesDevArtifactsPlugin(), spaFallbackPlugin(), react(), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
