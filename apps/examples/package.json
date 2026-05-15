@@ -35,7 +35,6 @@
 		"e2e-ui": "NODE_OPTIONS='--no-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-perf": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/perf/",
 		"e2e-perf-ui": "NODE_OPTIONS='--no-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/perf/",
-		"e2e-record-todo-demo": "node ./scripts/record-todo-list-demo.mjs",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
